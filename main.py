@@ -7,30 +7,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
-import urllib.parse
 
 FILENAME = "people.csv"
-
-
-def add_geo_filter(url_string):
-    parsed_url = urllib.parse.urlparse(url_string)
-    new_query_params = {
-        "companyHqGeo": '["103644278"]',
-        "keywords": parsed_url.query.split("&")[0].split("=")[1],
-        "origin": parsed_url.query.split("&")[1],
-        "sid": parsed_url.query.split("&")[2]
-    }
-    new_query_string = urllib.parse.urlencode(new_query_params)
-    new_url = urllib.parse.urlunparse((
-        parsed_url.scheme,
-        parsed_url.netloc,
-        parsed_url.path,
-        parsed_url.params,
-        new_query_string,
-        parsed_url.fragment
-    ))
-    return new_url
-
 
 # Authorization
 def auth(driver, username, password):
@@ -243,4 +221,4 @@ if __name__ == "__main__":
     auth(DRIVER, "username", os.environ.get("LNK_PSW"))
     ind_map = scrape_companies(DRIVER, MED, MAX_PAGE)
     scrape_people(DRIVER, ind_map)
-    # message_people(DRIVER, FILENAME)
+    message_people(DRIVER, FILENAME)
