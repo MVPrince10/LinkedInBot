@@ -62,12 +62,6 @@ def scrape_companies(driver, size, max_page):
         search_box.send_keys(Keys.ENTER)
         time.sleep(5)
 
-        # TODO: filter by geographic location
-        # filter by geography=US
-        # if "companyHqGeo" not in driver.current_url:
-        #     driver.get(add_geo_filter(driver.current_url))
-        #     time.sleep(2)
-
         # filter by companies
         if "companies" not in driver.current_url:
             driver.find_element(By.XPATH, "//button[text()='Companies']").click()
@@ -95,14 +89,23 @@ def scrape_companies(driver, size, max_page):
             driver.find_element(By.XPATH, "//button[text()='Company size']").click()
             time.sleep(3)
 
+        # filter by geography=US
+        if "companyHqGeo" not in driver.current_url:
+            driver.get(driver.current_url + '&companyHqGeo=%5B"103644278"%5D')
+
         # do work of scraping companies
         for i in range(1, max_page + 1):
             # grab all company links
             companies = driver.find_elements(By.CLASS_NAME, "app-aware-link ")
             for comp in companies:
-                # make sure link is a company link not random link
-                if "https://www.linkedin.com/company" in comp.get_attribute("href"):
-                    industry_map[search_term].add(comp.get_attribute("href"))
+                try:
+                    # make sure link is a company link not random link
+                    company_link = comp.get_attribute("href")
+                    if "https://www.linkedin.com/company" in company_link:
+                        industry_map[search_term].add(company_link)
+                except Exception as exc:
+                    print(exc)
+                    continue
 
             # get url for next page by appending page=#
             if "page" not in driver.current_url:
@@ -217,7 +220,7 @@ if __name__ == "__main__":
     SML = 10
     MED = 50
     LRG = 200
-    MAX_PAGE = 1
+    MAX_PAGE = 10
     print("#############################################")
     print("Starting linkedin bot...")
     # set driver options
@@ -237,7 +240,7 @@ if __name__ == "__main__":
     DRIVER = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     DRIVER.implicitly_wait(20)
     DRIVER.maximize_window()
-    auth(DRIVER, "username/email", os.environ.get("LNK_PSW"))
-    ind_map = scrape_companies(DRIVER, SML, MAX_PAGE)
+    auth(DRIVER, "username", os.environ.get("LNK_PSW"))
+    ind_map = scrape_companies(DRIVER, MED, MAX_PAGE)
     scrape_people(DRIVER, ind_map)
-    message_people(DRIVER, FILENAME)
+    # message_people(DRIVER, FILENAME)
